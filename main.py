@@ -2,9 +2,10 @@ from flask import Flask, render_template_string, request, session, redirect, url
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = "grafxcore_secret_key" # In a real app, use a proper secret key
+app.secret_key = os.environ.get('SESSION_SECRET', 'grafxcore_default_secret_key')
 DIRECTORY = "Grafxcore-V1zip/agency-site"
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
@@ -12,9 +13,12 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
 
-# Admin Credentials
-ADMIN_EMAIL = "manish@grafxcore.in"
-ADMIN_PASSWORD = "Manish@891819"
+# Admin Credentials (using environment variables with fallbacks)
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'manish@grafxcore.in')
+# Store hashed password. Default password "Manish@891819" hashed.
+# In production, ONLY use ADMIN_PASSWORD_HASH env var.
+DEFAULT_HASH = generate_password_hash('Manish@891819')
+ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD_HASH', DEFAULT_HASH)
 
 LOGIN_HTML = """
 <!DOCTYPE html>
@@ -65,11 +69,15 @@ def login():
     
     error = None
     if request.method == 'POST':
-        if request.form['email'] == ADMIN_EMAIL and request.form['password'] == ADMIN_PASSWORD:
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        if email == ADMIN_EMAIL and check_password_hash(ADMIN_PASSWORD_HASH, password):
             session['logged_in'] = True
+            session.permanent = True # Session lasts across browser restarts
             return redirect(url_for('admin'))
         else:
-            error = "Invalid credentials"
+            error = "Invalid email or password"
             
     return render_template_string(LOGIN_HTML, error=error)
 

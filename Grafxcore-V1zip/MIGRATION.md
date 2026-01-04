@@ -19,11 +19,18 @@ The contact form and admin panel rely on a PostgreSQL database.
   );
   ```
 
-## 2. Admin Credentials
-The admin login is currently hardcoded in `main.py`.
-- Open `main.py`.
-- Find the `ADMIN_EMAIL` and `ADMIN_PASSWORD` variables.
-- Update them to your preferred login details before deploying.
+## 2. Admin Security
+The authentication system now uses hashed passwords and environment variables.
+- **Environment Variables**:
+  - `SESSION_SECRET`: Set this to a long random string to secure user sessions.
+  - `ADMIN_EMAIL`: Set your admin email address.
+  - `ADMIN_PASSWORD_HASH`: Set this to a hashed version of your password.
+- **Generating a Hash**: You can generate a hash using Python:
+  ```python
+  from werkzeug.security import generate_password_hash
+  print(generate_password_hash('your_password_here'))
+  ```
+- **Session Persistence**: Sessions are now permanent, meaning you won't be logged out when you close your browser.
 
 ## 3. Web Server Configuration
 We have included configuration files for different hosting types inside the `agency-site` folder:
