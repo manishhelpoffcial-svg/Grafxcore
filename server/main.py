@@ -5,7 +5,7 @@ from psycopg2.extras import RealDictCursor
 
 app = Flask(__name__)
 app.secret_key = "grafxcore_secret_key" # In a real app, use a proper secret key
-DIRECTORY = "agency-site"
+DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../client")
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
